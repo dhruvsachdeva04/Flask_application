@@ -1,75 +1,40 @@
-from application import app
-from flask import render_template, request, redirect, flash, url_for
-
+from flask import Blueprint, jsonify, request
+from app.models import User
 from bson import ObjectId
 
-from .forms import TodoForm
-from application import db
-from datetime import datetime
+main = Blueprint("main", __name__)
 
+@main.route("/users", methods=["GET"])
+def get_users():
+    users = User.get_users()
+    return jsonify([{"id": str(user["_id"]), "name": user["name"], "email": user["email"]} for user in users]), 200
 
-@app.route("/")
-def get_todos():
-    todos = []
-    for todo in db.todos_flask.find().sort("date_created", -1):
-        todo["_id"] = str(todo["_id"])
-        todo["date_created"] = todo["date_created"].strftime("%b %d %Y %H:%M:%S")
-        todos.append(todo)
+@main.route("/users/<id>", methods=["GET"])
+def get_user(id):
+    user = User.get_user_by_id(ObjectId(id))
+    if user:
+        return jsonify({"id": str(user["_id"]), "name": user["name"], "email": user["email"]}), 200
+    return jsonify({"error": "User not found"}), 404
 
-    return render_template("view_todos.html", todos = todos)
-    
+@main.route("/users", methods=["POST"])
+def create_user():
+    data = request.get_json()
+    if "name" in data and "email" in data and "password" in data:
+        user_id = User.create_user(data)
+        return jsonify({"id": str(user_id.inserted_id), "message": "User created"}), 201
+    return jsonify({"error": "Invalid data"}), 400
 
-@app.route("/add_todo", methods = ['POST', 'GET'])
-def add_todo():
-    if request.method == "POST":
-        form = TodoForm(request.form)
-        todo_name = form.name.data
-        todo_description = form.description.data
-        completed = form.completed.data
+@main.route("/users/<id>", methods=["PUT"])
+def update_user(id):
+    data = request.get_json()
+    result = User.update_user(ObjectId(id), data)
+    if result.modified_count > 0:
+        return jsonify({"message": "User updated"}), 200
+    return jsonify({"error": "User not found or data unchanged"}), 404
 
-        db.todos_flask.insert_one({
-            "name": todo_name,
-            "description": todo_description,
-            "completed": completed,
-            "date_created": datetime.utcnow()
-        })
-        flash("Todo successfully added", "success")
-        return redirect("/")
-    else:
-        form = TodoForm()
-    return render_template("add_todo.html", form = form)
-
-
-@app.route("/delete_todo/<id>")
-def delete_todo(id):
-    db.todos_flask.find_one_and_delete({"_id": ObjectId(id)})
-    flash("Todo successfully deleted", "success")
-    return redirect("/")
-
-
-@app.route("/update_todo/<id>", methods = ['POST', 'GET'])
-def update_todo(id):
-    if request.method == "POST":
-        form = TodoForm(request.form)
-        todo_name = form.name.data
-        todo_description = form.description.data
-        completed = form.completed.data
-
-        db.todos_flask.find_one_and_update({"_id": ObjectId(id)}, {"$set": {
-            "name": todo_name,
-            "description": todo_description,
-            "completed": completed,
-            "date_created": datetime.utcnow()
-        }})
-        flash("Todo successfully updated", "success")
-        return redirect("/")
-    else:
-        form = TodoForm()
-
-        todo = db.todos_flask.find_one_or_404({"_id": ObjectId(id)})
-        print(todo)
-        form.name.data = todo.get("name", None)
-        form.description.data = todo.get("description", None)
-        form.completed.data = todo.get("completd", None)
-
-    return render_template("add_todo.html", form = form)
+@main.route("/users/<id>", methods=["DELETE"])
+def delete_user(id):
+    result = User.delete_user(ObjectId(id))
+    if result.deleted_count > 0:
+        return jsonify({"message": "User deleted"}), 200
+    return jsonify({"error": "User not found"}), 404

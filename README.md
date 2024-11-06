@@ -1,37 +1,45 @@
-# Flask_application
+# Flask CRUD Application with MongoDB
 
-# Flask Todo Application
+## Overview
 
-A simple Flask web application that allows users to create, read, update, and delete tasks on a to-do list. This project demonstrates basic CRUD (Create, Read, Update, Delete) operations with MongoDB as the database. It's a beginner-friendly project for learning how to build a web application with Flask, MongoDB, and basic HTML/CSS.
+This is a Flask-based REST API application that performs CRUD operations on a MongoDB database for managing a "User" resource.
 
-## Features
+## Requirements
 
-- **Add Tasks**: Create new tasks with a description.
-- **View Tasks**: Display a list of all tasks sorted by creation date.
-- **Update Tasks**: Modify existing task details.
-- **Delete Tasks**: Remove tasks from the to-do list.
-- **Database**: Uses MongoDB to persist tasks.
+- **Python 3.9+**
+- **MongoDB**
 
-## Tech Stack
+## Setup and Run
 
-- **Backend**: Flask (Python)
-- **Database**: MongoDB
-- **Frontend**: HTML, CSS (for basic styling)
-
-## Getting Started
-
-To set up and run the application on your local machine, follow these steps.
-
-### Prerequisites
-
-- Python 3.x
-- MongoDB Atlas account or local MongoDB installation
-- [Flask](https://flask.palletsprojects.com/), [pymongo](https://pymongo.readthedocs.io/), and other dependencies (specified in `requirements.txt`)
-
-### Installation
-
-1. **Clone the repository:**
+1. **Clone the Repository:**
 
    ```bash
-   git clone https://github.com/your-username/flask-todo-app.git
-   cd flask-todo-app
+   git clone https://github.com/yourusername/FlaskCRUDApp.git
+   cd FlaskCRUDApp
+   ```
+
+2. **Install Dependencies:**
+
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Run Application:**
+   ```bash
+   python run.py
+   ```
+
+## API Endpoints
+
+1. `GET /users` - List all users.
+2. `GET /users/<id>` - Fetch user by ID.
+3. `POST /users` - Create a new user.
+4. `PUT /users/<id>` - Update a user.
+5. `DELETE /users/<id>` - Delete a user.
+
+## Docker Setup
+
+```bash
+docker build -t flask_crud_app .
+docker run -p 5000:5000 flask_crud_app
+```

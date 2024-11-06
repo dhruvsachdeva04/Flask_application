@@ -1,21 +1,17 @@
-import os
 from flask import Flask
 from flask_pymongo import PyMongo
-from dotenv import load_dotenv
+from app.config import Config
 
-# Load environment variables from .env file
-load_dotenv()
+mongo = PyMongo()
 
-app = Flask(__name__)
-app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
-app.config["MONGO_URI"] = os.getenv("MONGO_URI")
+def create_app():
+    app = Flask(__name__)
+    app.config.from_object(Config)
 
-# Check if the variables are being set correctly
-print("SECRET_KEY:", app.config["SECRET_KEY"])
-print("MONGO_URI:", app.config["MONGO_URI"])
+    mongo.init_app(app)
+    
+    # Register blueprints for routes
+    from app.routes import main
+    app.register_blueprint(main)
 
-# Initialize MongoDB
-mongodb_client = PyMongo(app)
-db = mongodb_client.db
-
-from application import routes
+    return app
